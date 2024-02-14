@@ -2,30 +2,47 @@ const numbers = document.querySelectorAll(".number");
 const operators = document.querySelectorAll(".operator");
 const display = document.querySelector(".display");
 const equals = document.querySelector(".equals");
-
+const decimal = document.querySelector(".decimal");
+const remove = document.querySelector(".remove");
 let currentNumber = "";
 let previousNumber = "";
 let operator = "";
 
-const add = (firstNumber, lastNumber) =>
-  parseInt(firstNumber) + parseInt(lastNumber);
-const subtract = (firstNumber, lastNumber) =>
-  parseInt(firstNumber) - parseInt(lastNumber);
-const multiply = (firstNumber, lastNumber) =>
-  parseInt(firstNumber) * parseInt(lastNumber);
-const divide = (firstNumber, lastNumber) =>
-  parseInt(firstNumber) / parseInt(lastNumber);
+function add(firstNumber, lastNumber) {
+  if (firstNumber.includes(".") || lastNumber.includes(".")) {
+    return parseFloat(firstNumber) + parseFloat(lastNumber);
+  }
+  return parseInt(firstNumber) + parseInt(lastNumber);
+}
+function subtract(firstNumber, lastNumber) {
+  return parseFloat(firstNumber) - parseFloat(lastNumber);
+}
+function multiply(firstNumber, lastNumber) {
+  if (firstNumber.includes(".") || lastNumber.includes(".")) {
+    return parseFloat(firstNumber) * parseFloat(lastNumber);
+  }
+  return parseInt(firstNumber) * parseInt(lastNumber);
+}
+function divide(firstNumber, lastNumber) {
+  return parseFloat(firstNumber) / parseFloat(lastNumber);
+}
 
 function operate(operator, currentNumber, previousNumber) {
   switch (operator) {
     case "+":
       return add(previousNumber, currentNumber);
     case "-":
-      return subtract(previousNumber, currentNumber);
+      return typeof subtract(previousNumber / currentNumber) === "number" &&
+        Number.isInteger(previousNumber / currentNumber)
+        ? previousNumber / currentNumber
+        : (previousNumber / currentNumber).toFixed(3);
     case "*":
       return multiply(previousNumber, currentNumber);
     case "/":
-      return divide(previousNumber, currentNumber);
+      return typeof divide(previousNumber / currentNumber) === "number" &&
+        Number.isInteger(previousNumber / currentNumber)
+        ? previousNumber / currentNumber
+        : (previousNumber / currentNumber).toFixed(3);
     default:
       return currentNumber;
   }
@@ -33,18 +50,30 @@ function operate(operator, currentNumber, previousNumber) {
 
 numbers.forEach((button) => {
   button.addEventListener("click", () => {
-    currentNumber += button.innerText;
+    currentNumber += button.innerHTML;
     updateScreen();
+    console.log(typeof currentNumber);
   });
 });
 
 operators.forEach((button) => {
   button.addEventListener("click", () => {
+    if (previousNumber != "" && currentNumber != "") {
+      currentNumber = operate(operator, currentNumber, previousNumber);
+      console.log(typeof currentNumber + "HELLO");
+      updateScreen();
+    }
     if (currentNumber !== "") {
       previousNumber = currentNumber;
       currentNumber = "";
     }
-    operator = button.innerText;
+    if (button.innerHTML === "AC") {
+      currentNumber = "";
+      previousNumber = "";
+      operator = "";
+      clearScreen();
+    }
+    operator = button.innerHTML;
   });
 });
 
@@ -56,7 +85,27 @@ equals.addEventListener("click", () => {
     updateScreen();
   }
 });
+decimal.addEventListener("click", () => {
+  if (!display.innerHTML.includes(".")) {
+    currentNumber += ".";
+    updateScreen();
+  }
+});
+remove.addEventListener("click", () => {
+  if (currentNumber != "") {
+    currentNumber = currentNumber.slice(0, -1);
+    updateScreen();
+  }
+  if (currentNumber === "") {
+    display.innerHTML = "0";
+    console.log(display.innerHTML);
+    clearScreen();
+  }
+});
 
 function updateScreen() {
-  display.textContent = currentNumber;
+  display.innerHTML = currentNumber;
+}
+function clearScreen() {
+  display.innerHTML = "0";
 }
