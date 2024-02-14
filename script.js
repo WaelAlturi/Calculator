@@ -1,106 +1,131 @@
-const numbers = document.querySelectorAll(".number");
-const operators = document.querySelectorAll(".operator");
-const display = document.querySelector(".display");
-const equals = document.querySelector(".equals");
-const decimal = document.querySelector(".decimal");
-const remove = document.querySelector(".remove");
-let currentNumber = "";
-let previousNumber = "";
-let operator = "";
+document.addEventListener('DOMContentLoaded', function() {
+  const display = document.querySelector('.display');
+  let currentNumber = '';
+  let firstOperand = null;
+  let operator = null;
+  let shouldResetDisplay = false;
 
-function add(firstNumber, lastNumber) {
-  return parseFloat(firstNumber) + parseFloat(lastNumber);
-}
-function subtract(firstNumber, lastNumber) {
-  return parseFloat(firstNumber) - parseFloat(lastNumber);
-}
-function multiply(firstNumber, lastNumber) {
-  return parseFloat(firstNumber) * parseFloat(lastNumber);
-}
-function divide(firstNumber, lastNumber) {
-  return parseFloat(firstNumber) / parseFloat(lastNumber);
-}
+  const clearDisplay = () => {
+    display.textContent = '0';
+    currentNumber = '';
+    firstOperand = null;
+    operator = null;
+  };
 
-function operate(operator, currentNumber, previousNumber) {
-  switch (operator) {
-    case "+":
-      return add(previousNumber, currentNumber).toString().includes(".")
-        ? add(previousNumber, currentNumber).toFixed(3)
-        : add(previousNumber, currentNumber);
-    case "-":
-      return subtract(previousNumber, currentNumber).toString().includes(".")
-        ? subtract(previousNumber, currentNumber).toFixed(3)
-        : subtract(previousNumber, currentNumber);
-    case "*":
-      return multiply(previousNumber, currentNumber).toString().includes(".")
-        ? multiply(previousNumber, currentNumber).toFixed(3)
-        : multiply(previousNumber, currentNumber);
-    case "/":
-      return divide(previousNumber, currentNumber).toString().includes(".")
-        ? divide(previousNumber, currentNumber).toFixed(3)
-        : divide(previousNumber, currentNumber);
-    default:
-      return currentNumber;
-  }
-}
+  const updateDisplay = () => {
+    display.textContent = currentNumber;
+  };
 
-numbers.forEach((button) => {
-  button.addEventListener("click", () => {
-    currentNumber += button.innerHTML;
-    updateScreen();
+  const appendNumber = (number) => {
+      if (currentNumber === '0' || shouldResetDisplay) {
+        currentNumber = '';
+        shouldResetDisplay = false;
+      }
+      if (currentNumber.length < 9) { 
+        currentNumber += number;
+        updateDisplay();
+      }
+    };
+
+  const setOperator = (op) => {
+    if (operator !== null) operate();
+    firstOperand = parseFloat(currentNumber);
+    operator = op;
+    shouldResetDisplay = true;
+  };
+
+  const operate = () => {
+      if (firstOperand === null || operator === null) {
+          currentNumber = '0';
+      } else {
+          const secondOperand = parseFloat(currentNumber);
+          let result;
+          if (operator === '+') {
+              result = firstOperand + secondOperand;
+          } else if (operator === '-') {
+              result = firstOperand - secondOperand;
+          } else if (operator === '×') {
+              result = firstOperand * secondOperand;
+          } else if (operator === '÷') {
+              if (secondOperand === 0) {
+                  currentNumber = 'Error';
+                  updateDisplay();
+                  return;
+              } else {
+                  result = firstOperand / secondOperand;
+              }
+          }
+          
+          if (isNaN(result) || !isFinite(result)) {
+              currentNumber = 'Error';
+          } else {
+              const resultString = result.toString();
+              if (resultString.length > 9) {
+                  result = parseFloat(result.toFixed(9));
+              } else {
+                  result = result.toString();
+              }
+              currentNumber = result;
+          }
+      }
+      updateDisplay();
+      firstOperand = parseFloat(currentNumber);
+      operator = null;
+  };
+  
+    
+  const handleButtonClick = (e) => {
+    const { target } = e;
+    if (target.classList.contains('number')) {
+      appendNumber(target.textContent);
+    }
+    if (target.classList.contains('operator')) {
+      setOperator(target.textContent);
+    }
+    if (target.classList.contains('equals')) {
+      operate();
+    }
+    if (target.classList.contains('clear')) {
+      clearDisplay();
+    }
+    if (target.classList.contains('decimal')) {
+      if (!currentNumber.includes('.')) {
+        appendNumber('.');
+      }
+    }
+    if (target.classList.contains('backspace')) {
+      currentNumber = currentNumber.slice(0, -1);
+      if (currentNumber === '') {
+        currentNumber = '0';
+      }
+      updateDisplay();
+    }
+  };
+
+  document.querySelectorAll('.calculator button').forEach(button => {
+    button.addEventListener('click', handleButtonClick);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const key = e.key;
+    if (!isNaN(key) || key === '.') {
+      appendNumber(key);
+    }
+    if (['+', '-', '*', '/'].includes(key)) {
+      setOperator(key === '*' ? '×' : (key === '/' ? '÷' : key));
+    }
+    if (key === 'Enter') {
+      operate();
+    }
+    if (key === 'Escape') {
+      clearDisplay();
+    }
+    if (key === 'Backspace') {
+      currentNumber = currentNumber.slice(0, -1);
+      if (currentNumber === '') {
+        currentNumber = '0';
+      }
+      updateDisplay();
+    }
   });
 });
-
-operators.forEach((button) => {
-  button.addEventListener("click", () => {
-    if (previousNumber != "" && currentNumber != "") {
-      currentNumber = operate(operator, currentNumber, previousNumber);
-      updateScreen();
-    }
-    if (currentNumber !== "") {
-      previousNumber = currentNumber;
-      currentNumber = "";
-    }
-    if (button.innerHTML === "AC") {
-      currentNumber = "";
-      previousNumber = "";
-      operator = "";
-      clearScreen();
-    }
-    operator = button.innerHTML;
-  });
-});
-
-equals.addEventListener("click", () => {
-  if (operator && previousNumber !== "" && currentNumber !== "") {
-    currentNumber = operate(operator, currentNumber, previousNumber);
-    previousNumber = "";
-    operator = "";
-    updateScreen();
-  }
-});
-
-decimal.addEventListener("click", () => {
-  if (!display.innerHTML.includes(".")) {
-    currentNumber += ".";
-    updateScreen();
-  }
-});
-
-remove.addEventListener("click", () => {
-  if (currentNumber != "") {
-    currentNumber = currentNumber.toString().slice(0, -1);
-    updateScreen();
-  }
-  if (currentNumber === "") {
-    display.innerHTML = "0";
-    clearScreen();
-  }
-});
-
-function updateScreen() {
-  display.innerHTML = currentNumber;
-}
-function clearScreen() {
-  display.innerHTML = "0";
-}
