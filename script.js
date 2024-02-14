@@ -79,12 +79,14 @@ equals.addEventListener("click", () => {
     updateScreen();
   }
 });
+
 decimal.addEventListener("click", () => {
   if (!display.innerHTML.includes(".")) {
     currentNumber += ".";
     updateScreen();
   }
 });
+
 remove.addEventListener("click", () => {
   if (currentNumber != "") {
     currentNumber = currentNumber.toString().slice(0, -1);
