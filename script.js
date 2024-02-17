@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const updateDisplay = () => {
     display.textContent = currentNumber;
-    console.log(firstOperand);
   };
 
   const appendNumber = (number) => {
@@ -29,12 +28,14 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const setOperator = (op) => {
-    if (operator !== null && firstOperand === currentNumber) {
-      console.log("hi");
+    if (operator !== null && currentNumber !== "") {
       operate();
     }
     operator = op;
-    firstOperand = parseFloat(currentNumber);
+    if (currentNumber !== "") {
+      firstOperand = parseFloat(currentNumber);
+    }
+    currentNumber = "";
     shouldResetDisplay = true;
   };
 
